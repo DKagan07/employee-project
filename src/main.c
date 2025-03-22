@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #include "common.h"
-// #include "file.h"
-// #include "parse.h"
+#include "../include/common.h"
+#include "../include/file.h"
+#include "../include/parse.h"
 
 void print_usage(char* argv[])
 {
@@ -28,6 +28,8 @@ int main(int argc, char* argv[])
     char* filepath = NULL;
     bool new_file = false;
     int c = 0;
+    int dbfd = -1;
+    struct dbheader_t* header = NULL;
 
     while ((c = getopt(argc, argv, "nf:a:")) != -1) {
         switch (c) {
@@ -56,11 +58,30 @@ int main(int argc, char* argv[])
     }
 
     if (new_file && filepath != NULL) {
-        printf("need to create new file!");
+        dbfd = create_db_file(filepath);
+        if (dbfd == STATUS_ERROR) {
+            perror("main::create_db_file\n");
+            return -1;
+        }
+
+        if (create_db_header(dbfd, &header) == STATUS_ERROR) {
+            perror("main::create_database_header::Failed to create database header\n");
+            return -1;
+        }
+    } else {
+        dbfd = open_db_file(filepath);
+        if (dbfd == STATUS_ERROR) {
+            perror("main::open_db_file\n");
+            return -1;
+        }
+        if (validate_db_header(dbfd, &header) == STATUS_ERROR) {
+            perror("main::validate_database_header::failed to validate database header\n");
+            return -1;
+        }
     }
 
-    printf("Newfile: %d\n", new_file);
-    printf("Filepath: %s\n", filepath);
+    output_file(dbfd, header, NULL);
 
+    printf("\n");
     return 0;
 }
