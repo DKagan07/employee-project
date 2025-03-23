@@ -29,7 +29,9 @@ int main(int argc, char* argv[])
     bool new_file = false;
     int c = 0;
     int dbfd = -1;
-    struct dbheader_t* header = NULL;
+    struct dbheader_t* dbhdr = NULL;
+    struct employee_t* employees = NULL;
+    char* addstring = NULL;
 
     while ((c = getopt(argc, argv, "nf:a:")) != -1) {
         switch (c) {
@@ -40,7 +42,7 @@ int main(int argc, char* argv[])
             filepath = optarg;
             break;
         case 'a':
-            printf("arg %s\n", optarg);
+            addstring = optarg;
             break;
         case '?':
             printf("Unknown option -%c\n", c);
@@ -60,27 +62,38 @@ int main(int argc, char* argv[])
     if (new_file && filepath != NULL) {
         dbfd = create_db_file(filepath);
         if (dbfd == STATUS_ERROR) {
-            perror("main::create_db_file\n");
+            printf("main::create_db_file\n");
             return -1;
         }
 
-        if (create_db_header(dbfd, &header) == STATUS_ERROR) {
-            perror("main::create_database_header::Failed to create database header\n");
+        if (create_db_header(dbfd, &dbhdr) == STATUS_ERROR) {
+            printf("main::create_database_header::Failed to create database header\n");
             return -1;
         }
     } else {
         dbfd = open_db_file(filepath);
         if (dbfd == STATUS_ERROR) {
-            perror("main::open_db_file\n");
+            printf("main::open_db_file\n");
             return -1;
         }
-        if (validate_db_header(dbfd, &header) == STATUS_ERROR) {
-            perror("main::validate_database_header::failed to validate database header\n");
+        if (validate_db_header(dbfd, &dbhdr) == STATUS_ERROR) {
+            printf("main::validate_database_header::failed to validate database header\n");
             return -1;
         }
     }
 
-    output_file(dbfd, header, NULL);
+    if (read_employees(dbfd, dbhdr, &employees) != STATUS_SUCCESS) {
+        printf("main::read_employees");
+        return 0;
+    }
+
+    if (addstring) {
+        dbhdr->count++;
+        employees = realloc(employees, dbhdr->count * (sizeof(struct employee_t)));
+        add_employee(dbhdr, employees, addstring);
+    }
+
+    output_file(dbfd, dbhdr, employees);
 
     printf("\n");
     return 0;
