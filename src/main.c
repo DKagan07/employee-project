@@ -13,6 +13,7 @@ void print_usage(char* argv[])
     printf("\t -f  -  (required) path to database file\n");
     printf("\t -n  -  create new database file\n");
     printf("\t -a  -  create new employee\n");
+    printf("\t -l  -  list all employees\n");
     return;
 }
 
@@ -20,8 +21,11 @@ void print_usage(char* argv[])
 // -f: filename to our database file
 // -n: if a file does  not exist, create a new db file and then perform some action
 // -a: to add a new employee
-// -d: to delete an employee
+// -l: list all employees
+//
+// TODO:
 // -u: to update an employee
+// -d: to delete an employee
 
 int main(int argc, char* argv[])
 {
@@ -32,8 +36,9 @@ int main(int argc, char* argv[])
     struct dbheader_t* dbhdr = NULL;
     struct employee_t* employees = NULL;
     char* addstring = NULL;
+    bool list = false;
 
-    while ((c = getopt(argc, argv, "nf:a:")) != -1) {
+    while ((c = getopt(argc, argv, "nf:a:l")) != -1) {
         switch (c) {
         case 'n':
             new_file = true;
@@ -43,6 +48,9 @@ int main(int argc, char* argv[])
             break;
         case 'a':
             addstring = optarg;
+            break;
+        case 'l':
+            list = true;
             break;
         case '?':
             printf("Unknown option -%c\n", c);
@@ -91,6 +99,10 @@ int main(int argc, char* argv[])
         dbhdr->count++;
         employees = realloc(employees, dbhdr->count * (sizeof(struct employee_t)));
         add_employee(dbhdr, employees, addstring);
+    }
+
+    if (list) {
+        list_employees(dbhdr, employees);
     }
 
     output_file(dbfd, dbhdr, employees);
