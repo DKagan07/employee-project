@@ -1,11 +1,10 @@
+#include "../include/common.h"
+#include "../include/file.h"
+#include "../include/parse.h"
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "../include/common.h"
-#include "../include/file.h"
-#include "../include/parse.h"
 
 void print_usage(char* argv[])
 {
@@ -14,6 +13,7 @@ void print_usage(char* argv[])
     printf("\t -n  -  create new database file\n");
     printf("\t -a  -  create new employee\n");
     printf("\t -l  -  list all employees\n");
+    printf("\t -u  -  update an employee by name (ex. 'Timmy H.,Timmy J.,address,hours')\n");
     return;
 }
 
@@ -22,9 +22,9 @@ void print_usage(char* argv[])
 // -n: if a file does  not exist, create a new db file and then perform some action
 // -a: to add a new employee
 // -l: list all employees
+// -u: to update an employee
 //
 // TODO:
-// -u: to update an employee
 // -d: to delete an employee
 
 int main(int argc, char* argv[])
@@ -36,9 +36,10 @@ int main(int argc, char* argv[])
     struct dbheader_t* dbhdr = NULL;
     struct employee_t* employees = NULL;
     char* addstring = NULL;
+    char* updatestring = NULL;
     bool list = false;
 
-    while ((c = getopt(argc, argv, "nf:a:l")) != -1) {
+    while ((c = getopt(argc, argv, "nf:a:lu:")) != -1) {
         switch (c) {
         case 'n':
             new_file = true;
@@ -51,6 +52,9 @@ int main(int argc, char* argv[])
             break;
         case 'l':
             list = true;
+            break;
+        case 'u':
+            updatestring = optarg;
             break;
         case '?':
             printf("Unknown option -%c\n", c);
@@ -103,6 +107,13 @@ int main(int argc, char* argv[])
 
     if (list) {
         list_employees(dbhdr, employees);
+    }
+
+    if (updatestring) {
+        if (update_employee(dbfd, dbhdr, updatestring, employees) < 0) {
+            perror("failed to update employee");
+            return -1;
+        }
     }
 
     output_file(dbfd, dbhdr, employees);

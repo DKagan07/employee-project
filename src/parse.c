@@ -1,15 +1,14 @@
-#include <arpa/inet.h>
+// #include "../include/file.h"
+#include "../include/parse.h"
+#include "../include/common.h"
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "../include/common.h"
-// #include "../include/file.h"
-#include "../include/parse.h"
 
 void list_employees(struct dbheader_t* dbhdr, struct employee_t* employees)
 {
@@ -25,8 +24,6 @@ void list_employees(struct dbheader_t* dbhdr, struct employee_t* employees)
 
 int add_employee(struct dbheader_t* dbhdr, struct employee_t* employees, char* addstring)
 {
-    printf("%s\n", addstring);
-
     char* name = strtok(addstring, ",");
     char* addr = strtok(NULL, ",");
     char* hours = strtok(NULL, ",");
@@ -153,6 +150,39 @@ int create_db_header(int fd, struct dbheader_t** headerOut)
     header->filesize = sizeof(struct dbheader_t);
 
     *headerOut = header;
+
+    return STATUS_SUCCESS;
+}
+
+int update_employee(int fd, struct dbheader_t* dbhdr, char* updatestring, struct employee_t* employees)
+{
+    if (fd < 0) {
+        printf("update_employee::bad fd\n");
+        return STATUS_ERROR;
+    }
+
+    bool updated = false;
+
+    char* old_name = strtok(updatestring, ",");
+    char* update_name = strtok(NULL, ",");
+    char* update_addr = strtok(NULL, ",");
+    char* update_hours = strtok(NULL, ",");
+
+    int i = 0;
+    for (; i < dbhdr->count; i++) {
+        if (strcmp(employees[i].name, old_name) == 0) {
+            int num_hours = atoi(update_hours);
+            strncpy(employees[i].name, update_name, sizeof(employees[i].name));
+            strncpy(employees[i].address, update_addr, sizeof(employees[i].address));
+            employees[i].hours = atoi(update_hours);
+            updated = true;
+        }
+    }
+
+    if (!updated) {
+        printf("no employee to update");
+        return STATUS_ERROR;
+    }
 
     return STATUS_SUCCESS;
 }
