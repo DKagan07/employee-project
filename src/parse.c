@@ -168,6 +168,11 @@ int update_employee(int fd, struct dbheader_t* dbhdr, char* updatestring, struct
     char* update_addr = strtok(NULL, ",");
     char* update_hours = strtok(NULL, ",");
 
+    if (old_name == NULL || update_name == NULL || update_addr == NULL || update_hours == NULL) {
+        printf("update_employee::not formatted properly\n");
+        return STATUS_ERROR;
+    }
+
     int i = 0;
     for (; i < dbhdr->count; i++) {
         if (strcmp(employees[i].name, old_name) == 0) {

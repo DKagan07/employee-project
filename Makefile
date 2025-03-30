@@ -7,9 +7,9 @@ run: clean default
 	./$(TARGET) -f my_new_database.db -a "Timmy H.,123 SheshireLn.,120"
 	./$(TARGET) -f my_new_database.db -a "Timmy I.,12345 Main St.,134"
 	./$(TARGET) -f my_new_database.db -l
-	./$(TARGET) -f my_new_database.db -u "Timmy H.,Timmy J.,12321 Maine St.,188"
+	./$(TARGET) -f my_new_database.db -u "Timmy H.,Timmy JKLMNOPQURSTUDsdfjhsdlkfjhslashdlkjahsdlkjahs.,12321 Maine St.,188"
 	./$(TARGET) -f my_new_database.db -l
-	echo "Should Fail Here"
+	echo "Should Fail"
 	./$(TARGET) -f my_new_database.db -u "Timmy U.,Timmy A.,1 Penn St.,40"
 
 default: $(TARGET)

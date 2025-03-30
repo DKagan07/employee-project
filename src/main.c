@@ -13,7 +13,7 @@ void print_usage(char* argv[])
     printf("\t -n  -  create new database file\n");
     printf("\t -a  -  create new employee\n");
     printf("\t -l  -  list all employees\n");
-    printf("\t -u  -  update an employee by name (ex. 'Timmy H.,Timmy J.,address,hours')\n");
+    printf("\t -u  -  update an employee by name in the format of '<name_in_db>,<updated_name>,<updated_addr>,<updated_hrs>'\n");
     return;
 }
 
