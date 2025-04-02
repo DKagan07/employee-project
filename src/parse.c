@@ -14,7 +14,7 @@ void list_employees(struct dbheader_t* dbhdr, struct employee_t* employees)
 {
     int i = 0;
     for (; i < dbhdr->count; i++) {
-        printf("Employee %d\n", i);
+        printf("Employee %d\n", i + 1);
         printf("\tName: %s\n", employees[i].name);
         printf("\tAddress: %s\n", employees[i].address);
         printf("\tHours worked: %d\n", employees[i].hours);
@@ -68,6 +68,7 @@ int output_file(int fd, struct dbheader_t* dbhdr, struct employee_t* employees)
         return STATUS_ERROR;
     }
 
+    int size_count = 0;
     int realcount = dbhdr->count;
 
     dbhdr->magic = htonl(dbhdr->magic);
@@ -77,13 +78,17 @@ int output_file(int fd, struct dbheader_t* dbhdr, struct employee_t* employees)
 
     lseek(fd, 0, SEEK_SET);
 
+    size_count += sizeof(struct dbheader_t);
     write(fd, dbhdr, sizeof(struct dbheader_t));
 
     int i = 0;
     for (; i < realcount; i++) {
         employees[i].hours = htonl(employees[i].hours);
+        size_count += sizeof(struct employee_t);
         write(fd, &employees[i], sizeof(struct employee_t));
     }
+
+    ftruncate(fd, size_count);
 
     return STATUS_SUCCESS;
 }
@@ -186,6 +191,42 @@ int update_employee(int fd, struct dbheader_t* dbhdr, char* updatestring, struct
 
     if (!updated) {
         printf("no employee to update");
+        return STATUS_ERROR;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+int delete_employee(int fd, struct dbheader_t* dbhdr, char* deletestring, struct employee_t* employees)
+{
+    if (fd < 0) {
+        printf("update_employee::bad fd\n");
+        return STATUS_ERROR;
+    }
+
+    int i = 0;
+    int delete_index = -1;
+
+    for (; i < dbhdr->count; i++) {
+        if (strcmp(deletestring, employees[i].name) == 0) {
+            delete_index = i;
+            break;
+        }
+    }
+
+    if (delete_index == -1) {
+        printf("delete_employee::did not find employee\n");
+        return STATUS_ERROR;
+    }
+
+    // shifting the employees down to the left, overwriting
+    for (i = delete_index; i < dbhdr->count - 1; i++) {
+        employees[i] = employees[i + 1];
+    }
+
+    // the last entry should be a duplicate, we want to free that memory
+    if (memset(&employees[dbhdr->count - 1], 0, sizeof(struct employee_t)) == NULL) {
+        printf("delete_employee::memset failed\n");
         return STATUS_ERROR;
     }
 
